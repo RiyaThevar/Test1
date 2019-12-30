@@ -12,8 +12,74 @@ select last_name,  salary, round(salary/1000) "Thousands" from employees;
 
 select employee_id, employee_name from employees where salary > any (select salary from employees where department_id = 60); 
 
+6.
+set SERVEROUTPUT ON
 declare
-v_deptid number(4):=90;
+v_deptid number(4):=&deptid;
+v_empid number(2);
 begin
-select department_id, count(employee_id) from employees  where department_id=v_deptid group by department_id;
+select count(employee_id) into v_empid from employees  where department_id=v_deptid ;
+dbms_output.put_line(v_empid);
+end;
+
+7.
+set SERVEROUTPUT ON
+declare
+v_year number :=&year;
+begin
+if mod(v_year, 4)=0 and mod(v_year,100)!=0 or mod(v_year, 400)=0 then
+  dbms_output.put_line(v_year || ' is a leap year');
+else
+  dbms_output.put_line(v_year || ' is not a leap year');
+  end if;
+end;
+
+8.
+define  emp_id=&empid;
+declare 
+v_salary number(15);
+v_bonus number(15):=0;
+v_ansal number(15):=0;
+begin
+select salary into v_salary from employees where employee_id = &emp_id;
+v_ansal :=v_salary*12;
+if v_ansal>=20000 then v_bonus:=2000;
+elsif v_ansal<=19999 and v_salary>=10000 then v_bonus:=1500;
+elsif v_ansal<=9999 then v_bonus:=1000;
+end if;
+dbms_output.put_line('The bonus is =' || v_bonus);
+end;
+
+
+9.
+set SERVEROUTPUT ON
+declare
+cursor emp_cur is
+select last_name, salary, hire_date from employees where salary>15000 and hire_date<'01-FEB-1998';
+v_emp emp_cur%rowtype;
+begin
+open emp_cur;
+loop
+fetch emp_cur into v_emp;
+exit when emp_cur%notfound;
+dbms_output.put_line(v_emp.last_name||' earns '||v_emp.salary||' and joined the organization on '||v_emp.hire_date);
+end loop;
+close emp_cur;
+end;
+
+10.
+declare
+lst_name employees.last_name%type;
+slry employees.salary%type;
+hiredate employees.hire_date%type;
+srtyear number(4);
+endyear number(4);
+begin
+select last_name, salary, hire_date into (lst_name, slry, hiredate) from employees ;
+select extract(year from start_date), extract(year from end_date) into (srtyear, endyear) from job_history; 
+if srtyear-endyear >5 and slry<3500 then
+  dbms_output.put_line (lst_name ||' due for a raise');
+else
+  dbms_output.put_line(lst_name||' not due for a raise');
+end if;
 end;
